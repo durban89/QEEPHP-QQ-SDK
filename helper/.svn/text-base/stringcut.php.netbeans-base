@@ -1,0 +1,91 @@
+<?php
+class Helper_StringCut {
+    
+    static function str_truncate($utf8Str, $width, $suffix = '...') {                
+            if (empty($utf8Str) || strlen($suffix) >= $width) {
+                return $suffix;
+            }
+                        
+            if (strlen($utf8Str) <= $width) {
+                return $utf8Str;
+            }
+
+            // $gbkStr = @iconv('UTF-8', 'GBK//IGNORE', $utf8Str);
+            $gbkStr = iconv('UTF-8', 'GBK//IGNORE', $utf8Str);
+
+            if ($gbkStr == '') {
+                return self::_str_truncate($utf8Str, $width, $suffix);
+            }
+
+            if (strlen($gbkStr) <= $width)
+            {                
+                return $utf8Str;
+            }
+
+            $cutStr = mb_strcut($gbkStr, 0, $width - strlen($suffix), 'GBK');
+        
+            $cutStr = iconv('GBK', 'UTF-8', $cutStr);
+
+            return $cutStr . $suffix;
+    }
+
+    static function _str_truncate($utf8Str, $width, $suffix)
+    {        
+        $i = 0;
+        $currentWidth = 0;
+        $newStr = '';
+
+        $str_len = strlen($utf8Str);
+        
+        while ($i < $str_len && $currentWidth < $width)
+        {
+            $ord = ord($utf8Str{$i});
+                 
+            if ($ord > 224) 
+            {            
+                $newStr .= substr($utf8Str, $i, 3);
+                $i += 3;
+                $currentWidth += 2;
+            }            
+            else if ($ord > 192) 
+            {
+                $newStr .= substr($utf8Str, $i, 2);
+                $i += 2;
+                $currentWidth += 2;
+            } 
+            else 
+            {
+                $newStr .= substr($utf8Str, $i, 1);
+                $i += 1;
+                $currentWidth += 1;
+            }
+        }
+
+            if ($currentWidth < $width || ($currentWidth == $width && $i == $str_len) )
+            {
+                return $utf8Str;
+            }
+        
+        return preg_replace('@([\x{00}-\x{ff}]{3}|.{2})$@u', $suffix, $newStr);
+    }
+    
+    /**
+     * 按照指定长度截切字符
+     * 
+     * @param String $str
+     * @param Int $length
+     * @param String $suffix
+     */
+    public static function getCutString($str,$length,$suffix='......'){
+        
+        if(empty($str)){
+            return '';
+        }
+        $len = strlen($str);
+        if($len <= $length){
+            return $str;
+        }
+        $str = mb_substr($str, 0, 100, 'UTF-8').$suffix;
+        return $str;
+    }
+}

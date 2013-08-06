@@ -1,0 +1,50 @@
+<?php
+class Helper_Pic{
+
+    public static function getServerPic($id=null,$type=null,$size=null){
+        $http = Q::ini('appini/server_pic/url');
+        $opts = array(
+            'base_uri'=>$http,
+            'script'=>'',
+            'mode'=>'',
+        );
+        $param = array(
+            'type'=>$type,
+            'id'=>$id,
+            'size'=>$size
+        );
+
+        $pic = url('default/icon',$param,'',$opts);
+        return $pic;
+    }
+
+    /**
+     * 图片的处理  封面图片
+     */
+    public static function uploadPanel($id,$mark){
+
+    	$config = array(
+    			'savepath'     => Helper_icon::get_real_path($mark),
+    			'upload_field' => $mark
+    	);
+
+    	//help使用方法，阅读代码
+    	$thumbnail = new Helper_Thumbnail($config);
+
+    	$images = Helper_icon::get_type_images_config($mark);
+
+    	if(isset($_FILES[$mark]['error'])){
+    		if($_FILES[$mark]['error'] == 0){
+    			try{
+    				$thumbnail->cut($id,$images);
+    			}catch(QException $qe){
+    				throw new QException($qe->getMessage());
+    			}
+    		}else{
+    			throw new QException('文件为空，或者文件大小超过限制');
+    		}
+
+    	}
+    }
+}
+?>

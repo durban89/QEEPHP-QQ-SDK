@@ -1,0 +1,405 @@
+<?php
+class Helper_Icon
+{
+    /**
+     * 上传单张图片
+     */
+    public static function uploadSinglePic($id,$type){
+        $config = array(
+			'savepath'     => Helper_icon::get_real_path($type),
+			'upload_field' => $type
+		);
+        //help使用方法，阅读代码
+        $thumbnail = new Helper_Thumbnail($config);
+
+        $images = self::get_type_images_config($type);
+
+        if(isset($_FILES[$type]['error']) && $_FILES[$type]['error'] == 0)
+		{
+			$thumbnail->cut($id,$images);
+		}
+    }
+
+    /**
+     * 上传单张图片
+     */
+    public static function uploadSinglePicThroughWeb($id,$type,$url){
+    	$config = array(
+    			'savepath'     => Helper_icon::get_real_path($type),
+    			'upload_field' => $type
+    	);
+
+    	ob_start();
+    	readfile($url);
+    	$imgData = ob_get_contents();
+    	ob_end_clean();
+    	$size = strlen($imgData);
+    	$hashpath = self::hashdir($id);
+    	$filename = $id.'.jpg';
+    	$filepath  = $config['savepath'].$hashpath;
+
+    	if(!file_exists($filepath)){
+    		@mkdir($filepath,0777,true);
+    	}
+
+    	$handle = fopen($filepath.$filename ,'w+');
+    	fwrite($handle, $imgData);
+    	fclose($handle);
+    }
+
+    /**
+     * * 获取hash路径
+     *
+     * @param int $id
+     * @return unknown
+     */
+    static private function hashdir($keyid){
+    	$keyid = abs(intval($keyid));
+    	$keyid = sprintf("%09d", $keyid);
+    	$dir1 = substr($keyid, 0, 3);
+    	$dir2 = substr($keyid, 3, 2);
+    	$dir3 = substr($keyid, 5, 2);
+    	return $dir1.'/'.$dir2.'/'.$dir3.'/';
+    }
+
+    /**
+     * 获取网络的图片
+     * @param unknown $type 图片类型
+     * @param unknown $id
+     */
+    static function echoFileContentThroughWeb($type,$id){
+    	$path = self::get_real_path($type);
+    	$nullfilename = self::get_default_file($type);
+
+    	if(!empty($path))
+    	{
+
+    		$file = $id.'.jpg';
+    		$hashpath = self::hashdir($id);
+    		$iconpath  = $path.$hashpath.$file;
+
+    		if(file_exists($iconpath)){
+    			$time = filemtime($iconpath);
+
+    			header("Cache-Control: private, max-age=10800, pre-check=10800");
+
+    			header("Pragma: private");
+
+    			header("Expires: " . date(DATE_RFC822,strtotime(" 4 day")));
+
+    			header("Content-Type:image/jpeg");
+
+    			if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&  (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $time)){
+    				header('Last-Modified: '.gmdate('D, d M Y H:i:s', $time).' GMT',
+    				true, 304);
+    				exit;
+    			}
+
+
+    			header('Last-Modified: '.gmdate('D, d M Y H:i:s', $time).' GMT');
+    		}
+    		header("Content-Type:image/jpeg");
+    		if(!is_file($iconpath))
+    		{
+    			echo file_get_contents($nullfilename);
+    		}else{
+    			echo file_get_contents($iconpath);
+    		}
+    	}
+    }
+
+
+	#获取图片的内容
+	static function echo_file_content($type,$id,$size){
+
+		$size_array = array('s','b','m');
+    	$path = self::get_real_path($type);
+    	$nullfilename = self::get_default_file($type);
+
+    	if(!empty($path)){
+
+	    	$file = $id.'_'.$size.'.jpg';
+	    	$hashpath = self::hashdir($id);
+	    	$iconpath  = $path.$hashpath.$file;
+
+	        if(file_exists($iconpath)){
+	        	$time = filemtime($iconpath);
+
+	        	header("Cache-Control: private, max-age=10800, pre-check=10800");
+
+	        	header("Pragma: private");
+
+	        	header("Expires: " . date(DATE_RFC822,strtotime(" 4 day")));
+
+	        	header("Content-Type:image/jpeg");
+
+                if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&  (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $time)){
+                    header('Last-Modified: '.gmdate('D, d M Y H:i:s', $time).' GMT',
+                    true, 304);
+                    exit;
+                }
+                header('Last-Modified: '.gmdate('D, d M Y H:i:s', $time).' GMT');
+	        }
+
+	        header("Content-Type:image/jpeg");
+	        if(!is_file($iconpath))
+		    {
+		    	echo file_get_contents($nullfilename);
+		    }
+		    else
+		    {
+		    	echo file_get_contents($iconpath);
+		    }
+    	}
+	}
+
+	#返回不同类型图片的路径
+	static function get_real_path($type = '')
+	{
+
+		$init_config = self::init_files();
+		if(isset($init_config[$type]))
+		{
+			return $init_config[$type]['real_path'];
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	#获取类型的默认的文件
+	static function get_default_file($type)
+	{
+		$init_config =  self::init_files();
+		if(isset($init_config[$type]))
+		{
+			return $init_config[$type]['default_file'];
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	#删除图片
+	static function remove_real_file($type,$id = 0)
+	{
+    	$size_array = array('s','b','m');
+    	$path = self::get_real_path($type);
+    	if(!empty($path))
+    	{
+	    	foreach($size_array as $size)
+	    	{
+	    		$file = $id.'_'.$size.'.jpg';
+	    		$hashpath = self::hashdir($id);
+	        	$iconpath  = $path.$hashpath.$file;
+	        	if(file_exists($iconpath))
+	        	{
+	        		unlink($iconpath);
+	        	}
+	    	}
+    	}
+	}
+
+	static function get_type_images_config($type)
+	{
+		$init_config =  self::init_files();
+		if(isset($init_config[$type]))
+		{
+			return $init_config[$type]['images_size'];
+		}
+		else
+		{
+			return array();
+		}
+	}
+
+	#默认图片文件的配置
+	static function init_files()
+	{
+		return array(
+            /**
+             * 项目需求的图片
+             */
+            'demandpic' =>array(
+                'real_path'    => Q::ini('appini/demandpic/upload_dir'),
+				'default_file' => Q::ini('appini/demandpic/defaultpic'),
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>100,'width'=>100,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>200,'width'=>200,'ext'=>'b'),
+				)
+            ),
+
+			#weibo粉丝图片
+			'weibopanel' => array(
+				'real_path'    => Q::ini('appini/weibopanel/upload_dir'),
+				'default_file' => Q::ini('appini/weibopanel/defaultpic'),
+				'images_size' => array(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>760,'width'=>628,'ext'=>'b'),
+				)
+			),
+
+			#电视剧剧照
+			'telepic' => array(
+				'real_path'    => Q::ini('appini/telepic/upload_dir'),
+				'default_file' => Q::ini('appini/telepic/defaultpic'),
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>760,'width'=>628,'ext'=>'b'),
+				)
+			),
+
+            #出品机构的照片
+			'clogo' => array(
+				'real_path'    => Q::ini('appini/clogo/upload_dir'),
+				'default_file' => Q::ini('appini/clogo/defaultpic'),
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>760,'width'=>628,'ext'=>'b'),
+				)
+			),
+
+			#电视剧封面照片
+			'telepanel' => array(
+				'real_path'    => Q::ini('appini/telepanel/upload_dir'),
+				'default_file' => Q::ini('appini/telepanel/defaultpic'),
+				#剪切图片的尺寸
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>760,'width'=>628,'ext'=>'b'),
+				)
+			),
+
+			#电影封面照片
+			'moviepic' => array(
+				'real_path'    => Q::ini('appini/moviepic/upload_dir'),
+				'default_file' => Q::ini('appini/moviepic/defaultpic'),
+				#剪切图片的尺寸
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>760,'width'=>628,'ext'=>'b'),
+				)
+			),
+
+			#电影封面照片
+			'cartoonpic' => array(
+				'real_path'    => Q::ini('appini/cartoonpic/upload_dir'),
+				'default_file' => Q::ini('appini/cartoonpic/defaultpic'),
+				#剪切图片的尺寸
+				'images_size' => array(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>760,'width'=>628,'ext'=>'b'),
+				)
+			),
+
+            #综艺节目封面照片
+			'zypic' => array(
+				'real_path'    => Q::ini('appini/zypic/upload_dir'),
+				'default_file' => Q::ini('appini/zypic/defaultpic'),
+				#剪切图片的尺寸
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>760,'width'=>628,'ext'=>'b'),
+				)
+			),
+			#乱世佳人封面照片
+			'jiaren' => array(
+				'real_path'    => Q::ini('appini/jiaren/upload_dir'),
+				'default_file' => Q::ini('appini/jiaren/defaultpic'),
+				#剪切图片的尺寸
+				'images_size' => array(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>350,'width'=>500,'ext'=>'b'),
+				)
+			),
+
+
+			#艺人剧照
+			'personpic' => array(
+				'real_path'    => Q::ini('appini/personpic/upload_dir'),
+				'default_file' => Q::ini('appini/personpic/defaultpic'),
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>760,'width'=>628,'ext'=>'b'),
+				)
+			),
+
+			#艺人封面照片
+			'personpanel'=> array(
+				'real_path'    => Q::ini('appini/personpanel/upload_dir'),
+				'default_file' => Q::ini('appini/personpanel/defaultpic'),
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>760,'width'=>628,'ext'=>'b'),
+				)
+			),
+
+			#影视机构照片logo
+			'filmagency'=> array(
+				'real_path'    => Q::ini('appini/filmagency/upload_dir'),
+				'default_file' => Q::ini('appini/filmagency/defaultpic'),
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>132,'width'=>120,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>264,'width'=>240,'ext'=>'b')
+				)
+			),
+
+            #网站照片logo
+			'website'=> array(
+				'real_path'    => Q::ini('appini/website/upload_dir'),
+				'default_file' => Q::ini('appini/website/defaultpic'),
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>132,'width'=>120,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>264,'width'=>240,'ext'=>'b')
+				)
+			),
+
+			#电视台照片logo
+			'television'=> array(
+				'real_path'=>Q::ini('appini/television/upload_dir'),
+				'default_file' => Q::ini('appini/television/defaultpic'),
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>132,'width'=>120,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>264,'width'=>240,'ext'=>'b')
+				)
+			),
+
+			#焦点资讯照片
+			'focus'=> array(
+				'real_path'=>Q::ini('appini/focusnews'),
+				'default_file' => Q::ini('appini/focus/defaultpic'),
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>150,'width'=>320,'ext'=>'s'),
+    	    		'b' =>array('type'=>'cut','height'=>300,'width'=>640,'ext'=>'b')
+    	    	)
+			),
+
+			#综艺封面照片
+			'zypanel'=> array(
+				'real_path'=>Q::ini('appini/zypanel/upload_dir'),
+				'default_file' => Q::ini('appini/zypanel/defaultpic'),
+				'images_size' => array
+				(
+					's' => array('type'=>'cut','height'=>190,'width'=>132,'ext'=>'s'),
+					'b' => array('type'=>'cut','height'=>760,'width'=>628,'ext'=>'b'),
+				)
+			)
+		);
+	}
+
+
+}

@@ -1,0 +1,179 @@
+<?php
+/**
+ * author: shjuto@gmail.com
+ * 处理图片上传
+ * 处理图片缩略图,支持图片类型jpg,jpeg,gif,bmp
+ * 依赖Qeephp中的Help_Uploader,Helper_Filesys,thumbnail等类
+ * 功能：
+ * 	   根据整形数据id值，快速生成hash目录结构，减少单个目录中文件数据过多导致性能下降
+ * 	   通过配置参数$config，方便在不同的类中加载,生成不定规格的图片及数量需求
+ *
+ */
+require Q::ini('app_config/ROOT_DIR').'/app/helper/thumbnail/thumbnail.php';
+class Helper_Thumbnail{
+	/**
+	 * 允许的尺寸
+	 * 1024*1024
+	 *
+	 * @var unknown_type
+	 */
+	var $allowsize = 1056784;
+
+	/**
+	 * 允许上传的类型
+	 *
+	 * @var unknown_type
+	 */
+	var $allowtype = 'jpg,gif,png,bmp,JPG,GIF,PNG,BMP';
+
+	/**
+	 * 保存目标文件的路径
+	 *
+	 * @var string
+	 */
+	var $savepath = 'icon';
+
+	/**
+	 * 是否有上传
+	 *
+	 * @var unknown_type
+	 */
+	var $isupload = true;
+
+	/**
+	 * 上传文件input 字段名
+	 *
+	 * @var string
+	 */
+	var $upload_field = 'upload_file';
+
+	/**
+	 * 原图资源
+	 *
+	 * @var resource
+	 */
+	var $uploader = '';
+
+	/**
+	 * 载入基本配置信息
+	 *
+	 * @param array $config
+	 */
+	function __construct(array $config)
+	{
+		if(isset($config['allowsize']))
+		{
+			$this->allowsize = $config['allowsize'];
+		}
+
+		if(isset($config['allowtype']))
+		{
+			$this->allowtype = $config['allowtype'];
+		}
+
+		if(isset($config['savepath']))
+		{
+			$this->savepath = $config['savepath'];
+		}
+
+		if(isset($config['upload_field']))
+		{
+			$this->upload_field = $config['upload_field'];//上传的图片字段
+		}
+
+
+	}
+
+	/**
+	 * $id 主键ID
+	 * $cut_params 切图参数
+	 * array('type'=>'cut','height'=>48,'width'=>48,'ext'=>'i')
+	 * type 切图方式：
+	 * 		cut=>按照目标尺寸48*48缩小最优化切图
+	 *      crop=>按照目标尺寸的宽度等比优化切图
+	 *      prorate=>按照给出尺寸等比放大或是缩小最优化切图
+	 *      copy=>复制原图
+	 * height 切图高度
+	 * width  切图宽度
+	 * ext 切图保存的后缀,如原图1.jpg,ext=i，结果既是1_i.jpg
+	 * @param int $id
+	 * @param array $cut_params
+	 */
+
+	function cut($id,$cut_params= array(array('type'=>'cut','height'=>48,'width'=>48,'ext'=>'i')))
+	{
+		$uploader = new Helper_Uploader();
+		if($uploader->existsFile($this->upload_field))
+		{
+			$postfile = $uploader->file($this->upload_field);
+			if(!$postfile->isValid($this->allowtype, $this->allowsize))
+			{
+				throw (new QException('图片太大,或是上传的类型不对'));//上传的类型不正确
+			}
+			$uploaderfile = $postfile;
+
+		}
+		else
+		{
+			$this->isupload = false;
+		}
+
+		if($this->isupload == true)
+		{
+
+
+			$cm = new Thumbnail();
+			$cm->SetVar($uploaderfile->tmpFilename(),"file");
+
+			/** 创建目录 **/
+			Helper_Filesys::mkdirs($this->savepath.$this->_hashdir($id));
+			foreach ($cut_params as $param)
+			{
+				$filename = $this->savepath.$this->_hashdir($id).$id.'_'.$param['ext'].'.jpg';
+				try
+				{
+					switch ($param['type'])
+					{
+						case 'cut':
+							$cm->Cut($filename,$param['width'],$param['height']);
+							break;
+						case 'crop':
+							$cm->crop($filename,$param['width']);
+							break;
+						case 'copy':
+							$cm->Copy($filename);
+							break;
+						case 'prorate':
+							$cm->Prorate($filename,$param['width'],$param['height']);
+							break;
+					}
+				}
+				catch (QException $ex)
+				{
+					throw new QException('上传的资源不是有效图片类型');
+				}
+
+			}
+			unset($cm);
+
+		}
+
+	}
+
+	/**
+	 * 获取hash路径
+	 *
+	 * @param int $id
+	 * @return unknown
+	 */
+	function _hashdir($keyid)
+	{
+		$keyid = abs(intval($keyid));
+		$keyid = sprintf("%09d", $keyid);
+		$dir1 = substr($keyid, 0, 3);
+		$dir2 = substr($keyid, 3, 2);
+		$dir3 = substr($keyid, 5, 2);
+		return $dir1.'/'.$dir2.'/'.$dir3.'/';
+	}
+
+}

@@ -1,0 +1,75 @@
+<?php
+
+class Helper_Memcached{
+    
+    //memcache句柄
+    private static $memcache_handle;
+    
+    /**
+     * 初始化配置
+     */
+    private static function initConf(){
+        return array(
+            'life_time'=> 3600, //一天的时间
+            'cache_dir'=>'../../tmp/runtime_cache'
+        );
+    }
+    
+    /**
+     * 初始化memecached操作句柄
+     */
+    private static function initMemcachedHandle(){
+        self::$memcache_handle = new QCache_File();
+        
+    }
+    
+    
+    /**
+     * 执行缓存操作
+     * 可以存储数据  或者是 获取数据
+     * @param mixed $id
+     * @param mixed $data
+     */
+    public static function cacheSet($id,$data){
+        $id = md5($id);
+        self::initConf();
+        self::initMemcachedHandle();
+        self::$memcache_handle->set($id,$data);
+    }
+    
+    /**
+     * 执行缓存操作
+     * 可以存储数据  或者是 获取数据
+     * @param mixed $id
+     * @param mixed $data
+     */
+    public static function cacheGet($id){
+        $id = md5($id);
+        self::initConf();
+        self::initMemcachedHandle();
+        return self::$memcache_handle->get($id);
+    }
+    
+    /**
+     * 删除存储的数据
+     * @param mixed $id
+     */
+    public static function cacheRemove($id){
+        $id = md5($id);
+        self::initConf();
+        self::initMemcachedHandle();
+        return self::$memcache_handle->remove($id);
+    }
+    
+    /**
+     * 清除多有的缓存 
+     */
+    public static function cacheClear(){
+        self::initConf();
+        self::initMemcachedHandle();
+        return self::$memcache_handle->clean();
+    }
+    
+    
+}
+?>

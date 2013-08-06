@@ -1,0 +1,90 @@
+<?php
+/**
+ * 处理远程的图片，并且进行本地存储
+ * @author davidzhang
+ *
+ */
+class Helper_Upload{
+
+	/**
+	 * 获取hash路径
+	 *
+	 * @param int $id
+	 * @return unknown
+	 */
+	private static function hashdir($keyid){
+		$keyid = abs(intval($keyid));
+		$keyid = sprintf("%09d", $keyid);
+		$dir1 = substr($keyid, 0, 3);
+		$dir2 = substr($keyid, 3, 2);
+		$dir3 = substr($keyid, 5, 2);
+		return $dir1.'/'.$dir2.'/'.$dir3.'/';
+	}
+
+	/**
+	 * 存储路径中的图片到本地
+	 * @param int/string $id 命名id
+	 */
+	public static function save($url,$path,$id){
+		if(empty($url)){
+			throw new QException('获取图片的url地址不能为空');
+		}
+
+		if(empty($path)){
+			throw new QException('存储图片的路径地址不能为空');
+		}
+
+		ob_start();
+		readfile($this->imgUrl);
+		$imgData = ob_get_contents();
+		ob_end_clean();
+		$size = strlen($imgData);
+		$hashpath = $this->hashdir($id);
+		$filename = $id.'.jpg';
+		$filepath  = $this->path.$hashpath;
+
+		if(!file_exists($filepath)){
+			@mkdir($this->path.$hashpath,0777,true);
+		}
+		$handle = fopen($filepath.$filename ,'w+');
+		fwrite($handle, $imgData);
+		fclose($handle);
+	}
+
+	public function get($id){
+		$hashpath = $this->hashdir($id);
+		$filename = $id.'.jpg';
+		$filepath  = $this->path.$hashpath;
+
+		$outFileName = $filepath.$filename;
+
+		if(file_exists($outFileName)){
+			$time = filemtime($outFileName);
+
+			header("Cache-Control: private, max-age=10800, pre-check=10800");
+
+			header("Pragma: private");
+
+			header("Expires: " . date(DATE_RFC822,strtotime(" 4 day")));
+
+			header("Content-Type:image/jpeg");
+
+			if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&  (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $time)){
+				header('Last-Modified: '.gmdate('D, d M Y H:i:s', $time).' GMT',
+				true, 304);
+				exit;
+			}
+			header('Last-Modified: '.gmdate('D, d M Y H:i:s', $time).' GMT');
+		}
+		header("Content-Type:image/jpeg");
+		if(!is_file($outFileName)){
+			exit;
+		}else{
+			echo file_get_contents($outFileName);
+		}
+	}
+
+
+}
+
+?>

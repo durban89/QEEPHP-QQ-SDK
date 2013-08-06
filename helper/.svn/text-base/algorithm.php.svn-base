@@ -1,0 +1,87 @@
+<?php
+
+/*
+ * 相关算法的帮助函数
+ */
+class Helper_Algorithm{
+    
+    private static $bit_check = 32;
+     /**
+      * @author david zhang
+      * @desc 自动生成随机值
+      * @return String $length 生成随机数的长度
+      */
+    public static function generateRandomHash($length){
+        $tmpArr = array();
+        $hash = '';  
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz';  
+        $max = strlen($chars) - 1;  
+        for($i = 0; $i < $length; $i++) {
+            $hash .= $chars[mt_rand(0, $max)];  
+        }
+        $tmpArr['string'] = $hash;
+        $tmpArr['hash'] = md5($hash);
+        
+        return $tmpArr;  
+    }
+    
+    /**
+     * @desc 获取微博appkey和appsecret加密的返回串
+     */
+    public static function getWeiboHash(){
+        $appkey = Q::ini('appini/weibo/AKEY');
+        $appsecret = Q::ini('appini/weibo/SKEY');
+        
+        return md5($appkey.$appsecret);
+        
+    }
+    
+    /**
+     * @desc 加密数据
+     * @param string $text
+     * @pram string$key
+     * 
+     */
+    public static function encrypt($text,$key) {
+        $iv = 'fYfhHeDm';
+        $bit_check = strlen($iv);
+        
+        $text_num =str_split($text,$bit_check);
+        $text_num = $bit_check-strlen($text_num[count($text_num)-1]);
+        for($i=0;$i<$text_num; $i++){
+            $text = $text . chr($text_num);
+        }
+        $cipher = mcrypt_module_open(MCRYPT_TRIPLEDES,'','cbc','');
+        mcrypt_generic_init($cipher, $key, $iv);
+        $decrypted = mcrypt_generic($cipher,$text);
+        mcrypt_generic_deinit($cipher);
+        return base64_encode($decrypted);
+    }
+    
+    /**
+     * @desc 解密数据
+     * @param string $encrypted_text
+     * @param string $key
+     */
+    public static function decrypt($encrypted_text,$key){
+        $iv = 'fYfhHeDm';
+        $bit_check = strlen($iv);
+        
+        $cipher = mcrypt_module_open(MCRYPT_TRIPLEDES,'','cbc','');
+        mcrypt_generic_init($cipher, $key, $iv);
+        $decrypted = mdecrypt_generic($cipher,base64_decode($encrypted_text));
+        mcrypt_generic_deinit($cipher);
+        $last_char=substr($decrypted,-1);
+        for($i=0;$i<$bit_check-1; $i++){
+            if(chr($i)==$last_char){
+                $decrypted=substr($decrypted,0,strlen($decrypted)-$i);
+                break;
+            }
+        }
+        return $decrypted;
+    }
+    
+    
+}
+
+?>

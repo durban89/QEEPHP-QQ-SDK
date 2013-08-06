@@ -1,0 +1,64 @@
+<?php
+class Helper_Stringfilter{
+	static function string_filter($string)
+	{
+		$string = strip_tags(trim($string));
+		//$string = preg_replace('/[\'\"<>&!,，]/','',$string);//去掉'"<>&/这样的字符
+		$string = str_replace(array('\'','\"','<','>','&','!',',','，'),array(''),$string);
+		$string = trim($string);
+		$filter_string = htmlspecialchars($string);
+		return $filter_string;
+	}
+	
+	static function filter_content($string)
+	{
+		$string = strip_tags(trim($string));
+		$string = trim($string);
+		$filter_string = htmlspecialchars($string);
+		return $filter_string;
+	}
+	
+	static function filter_zh($string)
+	{
+		preg_match('/[\x7f-\xff]+/',$string,$matches);
+		if(count($matches) >0 && strlen($matches[0]) >=4)
+		{
+			//$string = preg_replace('/[，]/','',$matches[0]);
+		  	$string = str_replace('，','',$matches[0]);
+			return $string;
+		}
+		else 
+		{
+			return null;
+		}
+	}
+    
+    /**
+     * @desc 过滤数据，将敏感的词汇替换掉
+     * @param string $content 要过滤的字符串
+     * @return 替换后的字符串
+     */
+    public static function filterReplace($content=NULL){
+        $table_change = array(
+            'you'=>'her sister',
+            '牛'=>'傻',
+            );
+        
+        return strtr($content,$table_change);
+    }
+    
+    /**
+     * @desc 将字符串中的url地址加上a标签
+     * @param string $url
+     * */
+     public static function urlAddATag($url){
+     	$foo = preg_replace('/(((f|ht){1}tp:\/\/)[-a-zA-Z0-9@:%_\+.~#?&\/\/=]+)/i', '<a href="\1" target=_blank rel=nofollow>\1</a>', $url);  
+     	  
+		if( strpos($foo, "http") === FALSE ){    
+			$foo = preg_replace('/(www\.[-a-zA-Z0-9@:%_\+\.~#?&\/\/=]+)/i', '<a href="http://\1" target=_blank rel=nofollow >\1</a>', $foo);    
+		}else{    
+			$foo = preg_replace('/([[:space:]()[{}])(www.[-a-zA-Z0-9@:%_\+\.~#?&\/\/=]+)/i', '\1<a href="http://\2" target=_blank rel=nofollow>\2</a>', $foo);    
+		}    
+		return $foo;
+     }
+}

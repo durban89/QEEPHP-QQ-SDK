@@ -1,0 +1,49 @@
+<?php
+
+/*
+ * 
+ * 数字处理函数
+ */
+class Helper_MyArray{
+    
+    /**
+     * @desc 分割数组
+     * @param $arr 要处理的数组
+     * @param $sum 一个组中元素的个数
+     */
+    public static function splitArray($arr=array(),$sum){
+        $tmpArr = array();
+        $i=0;
+        $j=0;
+        foreach($arr as $k=>$v){
+            $tmpArr[$j][$k] = $v;
+            ++$i;
+            if($i % $sum == 0){
+                ++$j;
+            }
+            
+        }
+        return $tmpArr;
+    }
+    
+    /**
+     * 返回数组中指定字段的数据
+     * @param $array 计算的数组
+     * @param $array 指定的键
+     */
+    public static function getTargetKeyArray($array=array(),$array_key=array()){
+        $tmpArr = array();
+        foreach($array as $k=>$v){
+            $tmp = array();
+            foreach($array_key as $k_k=>$k_v){
+                if(isset($v[$k_v])){
+                    $tmp[$k_v] = $v[$k_v];
+                }
+            }
+            $tmpArr[$k] = $tmp;
+        }
+        return $tmpArr;
+    }
+    
+}
+?>

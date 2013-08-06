@@ -1,0 +1,1790 @@
+<?php
+/**
+ * @desc vlikage 网站的通用数据接口
+ */
+class Helper_Vlinkageapi{
+
+    public static $uid = '';
+    public static $url = '';
+    public static $ip = '';
+    public function __construct($uid='',$url='',$ip=''){
+        if(!empty($uid)){
+            self::$uid = $uid;
+        }
+        if(!empty($ip)){
+            self::$ip = $ip;
+        }
+        if(!empty($url)){
+            self::$url = $url;
+        }
+        
+    }
+
+    #记录访问者的日志
+    public static function recordVisitorLog($uid,$post_url,$ip){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $url = $vlinkage_data_api."/visitor/log";
+        $postData = array();
+
+        if(!empty($uid)){
+            $postData[] = "user_id={$uid}";
+        }
+
+        if(!empty($url)){
+            $postData[] = "url={$post_url}";
+        }
+
+        if(!empty($ip)){
+            $postData[] = "ip={$ip}";
+        }
+        $postData = implode('&',$postData);
+
+        $data = json_decode(self::curl_post($url,$postData),true);
+    }
+
+    /**
+     * 获取网站累加电视剧播放量
+     *
+     * @param $start 起始个数 
+     * @param $offset 获取数据个数
+     * @return 返回数组数据 
+     */
+    public static function getSitePlusTeleplayPlay($start=1,$offset=8){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/teleplay/list?order_by=total_play_num&start={$start}&offset={$offset}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+
+        //teleplay/list?order_by=total_play_num&start=1&offset=10
+
+    }
+
+    /**
+     * 根据关键字 按照周 或者是按照天 获取电视剧的数据
+     * 
+     * @param $key
+     * @param $start_date
+     * @param $end_date
+     * @param $start 其实数量
+     * @param $sum 一次获取数据的数量 
+     */
+    public static function getTeleplayTrendByKey($key,$start_date,$end_date,$start,$sum){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/teleplay/trend?type=play_num&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 根据关键字 按照周 或者是按照天 获取电视剧在豆瓣网站的数据
+     * 
+     * @param $key
+     * @param $start_date
+     * @param $end_date
+     * @param $start 其实数量
+     * @param $sum 一次获取数据的数量 
+     */
+    public static function getTeleplayDoubanTrendByKey($key,$start_date,$end_date,$start,$sum){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/teleplay/trend?type=douban_score_num&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 根据关键字 按照周 或者是按照天 获取电视剧在新浪微博网站的数据
+     * 
+     * @param $key
+     * @param $start_date
+     * @param $end_date
+     * @param $start 其实数量
+     * @param $sum 一次获取数据的数量 
+     */
+    public static function getTeleplayWeiboTrendByKey($key,$start_date,$end_date,$start,$sum){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/teleplay/trend?type=weibo_fans_num&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+     /**
+     * 根据关键字 按照周 或者是按照天 获取电视剧在百度贴吧网站的数据
+     * 
+     * @param $key
+     * @param $start_date
+     * @param $end_date
+     * @param $start 其实数量
+     * @param $sum 一次获取数据的数量 
+     */
+    public static function getTeleplayTiebaTrendByKey($key,$start_date,$end_date,$start,$sum){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/teleplay/trend?type=tieba_post_num&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 根据关键字 按照周 或者是按照天 获取相关题材电视剧的数据
+     * 
+     * @param $key
+     * @param $start_date
+     * @param $end_date
+     * @param $start 其实数量
+     * @param $sum 一次获取数据的数量 
+     */
+    public static function getTeleplayThemeTrendByKey($key,$start_date,$end_date,$start,$sum){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/teleplay/trend?type=category&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 根据关键字 按照周 或者是按照天 获取网站电视剧的数据
+     * 
+     * @param $key
+     * @param $start_date
+     * @param $end_date
+     * @param $start 其实数量
+     * @param $sum 一次获取数据的数量 
+     */
+    public static function getTeleplaySiteTrendByKey($key,$start_date,$end_date,$start,$sum){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/teleplay/trend?type=site&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取电视里的最大时间和最小时间
+     */
+    public static function recordExecuteLengthLog($api,$time){
+        $logTime = date('Y-m-d H:i:s',$_SERVER['REQUEST_TIME']);
+        $log_file_name = dirname(dirname(dirname(__FILE__))).'/log/executelength.log';
+        if(file_exists($log_file_name)){
+//            echo 'exists';
+            $handle = fopen($log_file_name, 'a+');
+            $content = "[LogTime: {$logTime}] [API: {$api}] :::: [ EXECUTE_TIME: {$time}] \n";
+            fwrite($handle,$content);
+            fclose($handle);
+            unset($time);
+        }else{
+            //echo 'logFilename is not exists'."\n";
+        }
+        
+        
+        
+    }
+    public static function getMaxMinTime(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/play_num/daterange";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取艺人在微博中的最大时间和最小时间
+     */
+    public static function getPersonWeiboMaxMinTime(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/person/weibo/daterange";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取艺人在微博中的最大时间和最小时间
+     * 
+     * @param $id
+     */
+    public static function getPersonIdWeiboMaxMinTime($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/person/weibo/daterange?person_id=".$id;
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data']['end_date']) && !empty($data['data']['start_date'])){
+            return $data['data'];
+        }else{
+            $data = self::getPersonWeiboMaxMinTime();
+            if(!empty($data)){
+                return $data;
+            }else{
+                return array();
+            }
+        }
+    }
+    
+    /**
+     * 获取艺人在豆瓣中的最大时间和最小时间
+     */
+    public static function getPersonDoubanMaxMinTime(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/person/douban/daterange";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取豆瓣中的艺人的信息
+     * @param Int $pid
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getDoubanPerson($pid,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $url = $vlinkage_data_api."/person/douban?person_id=".$pid."&start_date=".$start_date."&end_date=".$end_date;
+        $data = self::curl_get($url);
+        $data = json_decode($data,true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+    
+    /**
+     * 获取艺人在豆瓣中的最大时间和最小时间
+     * 
+     * @param $id
+     */
+    public static function getPersonIdDoubanMaxMinTime($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/person/douban/daterange?person_id=".$id;
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data']['end_date']) && !empty($data['data']['start_date'])){
+            return $data['data'];
+        }else{
+            $data = self::getPersonDoubanMaxMinTime();
+            if(!empty($data)){
+                return $data;
+            }else{
+                return array();
+            }
+        }
+    }
+    
+    /**
+     * 获取艺人在贴吧中的最大时间和最小时间
+     */
+    public static function getPersonTiebaMaxMinTime(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/tieba/daterange";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取艺人在贴吧中的最大时间和最小时间
+     * 
+     * @param $id
+     */
+    public static function getPersonIdTiebaMaxMinTime($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/person/tieba/daterange?person_id=".$id;
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data']['end_date']) && !empty($data['data']['start_date'])){
+            return $data['data'];
+        }else{
+            $data = self::getPersonTiebaMaxMinTime();
+            if(!empty($data)){
+                return $data;
+            }else{
+                return array();
+            }
+        }
+    }
+    
+    /**
+     * 获取贴吧的最大时间和最小时间
+     * 
+     * @param int $id
+     */
+    public static function getTiebaMaxMinTime(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/tieba/daterange";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取豆瓣的最大时间和最小时间
+     * 
+     * @param int $id
+     */
+    public static function getDoubanMaxMinTime(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/tieba/daterange";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取电视剧微博的最大时间和最小时间
+     * 
+     * @param int $id
+     */
+    public static function getWeiboMaxMinTime(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/weibo/daterange";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取电视里的最大时间和最小时间
+     * 
+     * @param int $id
+     */
+    public static function getTeleplayMaxMinTime($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/teleplay/play_num/daterange?teleplay_id=".$id;
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data']['end_date']) && !empty($data['data']['start_date'])){
+            return $data['data'];
+        }else{
+            $data = self::getMaxMinTime();
+            if(!empty($data)){
+                return $data;
+            }else{
+                return array();
+            }
+        }
+    }
+    
+    /**
+     * 获取贴吧中电视剧的最大时间和最小时间
+     * 
+     * @param int $id
+     */
+    public static function getTiebaTeleplayMaxMinTime($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/tieba/daterange?teleplay_id=".$id;
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data']['end_date']) && !empty($data['data']['start_date'])){
+            return $data['data'];
+        }else{
+            $data = self::getMaxMinTime();
+            if(!empty($data)){
+                return $data;
+            }else{
+                return array();
+            }
+        }
+    }
+    
+    /**
+     * 获取豆瓣电视剧里的最大时间和最小时间
+     * 
+     * @param int $id
+     */
+    public static function getDoubanTeleplayMaxMinTime($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/douban/daterange?teleplay_id=".$id;
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            $data = self::getDoubanMaxMinTime();
+            if(!empty($data)){
+                return $data;
+            }else{
+                return array();
+            }
+        }
+    }
+    
+    /**
+     * 获取新浪微博电视剧里的最大时间和最小时间
+     * 
+     * @param int $id
+     */
+    public static function getWeiboTeleplayMaxMinTime($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/teleplay/weibo/daterange?teleplay_id=".$id;
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            $data = self::getWeiboMaxMinTime();
+            if(!empty($data)){
+                return $data;
+            }else{
+                return array();
+            }
+        }
+    }
+
+    /**
+     * 获取电视剧的排名
+     * 
+     * @param Integer $sum
+     * @param Integer $start
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getTeleplayTrend($start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/trend?start_date={$start_date}&end_date={$end_date}";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+    
+    /**
+     * 获取艺人微博趋势数据
+     * 
+     * @param String $key
+     * @param Integer $offset
+     * @param Integer $start
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getPersonWeiboTrend($key,$start_date,$end_date,$start,$offset){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/trend?type=weibo_fans_num&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$offset}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+    
+    /**
+     * 获取艺人微博趋势数据
+     * 
+     * @param String $key
+     * @param Integer $offset
+     * @param Integer $start
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getPersonTiebaTrend($key,$start_date,$end_date,$start,$offset){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/trend?type=tieba_post_num&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$offset}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+    
+    /**
+     * 获取电视剧的网站的播放量
+     * 
+     * @param int $id
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getTeleplaySitePlay($id,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/teleplay/play_num?teleplay_id=".$id."&start_date=".$start_date."&end_date=".$end_date;
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取电视剧的豆瓣网的相关参数
+     * 
+     * @param int $id
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getTeleplayDoubanPlay($id,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/teleplay/douban?teleplay_id=".$id."&start_date=".$start_date."&end_date=".$end_date;
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+        
+    }
+    
+    /**
+     * 获取电视剧的百度贴吧网的相关参数
+     * 
+     * @param int $id
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getTeleplayTiebaPlay($id,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/teleplay/tieba?teleplay_id=".$id."&start_date=".$start_date."&end_date=".$end_date;
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+        
+    }
+
+    /**
+     * 获取电视剧的新浪微博的相关参数
+     * 
+     * @param int $id
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getTeleplayWeiboPlay($id,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/teleplay/weibo?teleplay_id=".$id."&start_date=".$start_date."&end_date=".$end_date;
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+        
+    }
+    
+    /**
+     * 获取根据贴吧排序的艺人相关参数
+     * 
+     * @param String $start_date
+     * @param String $end_date
+     * @param int $start
+     * @param int $num 
+     */
+    public static function getPersonTiebaSortArg($start_date,$end_date,$start,$num=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/actorlist?order_by=tieba_fans_num&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$num}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+    
+    
+    /**
+     * 获取百度贴吧中的艺人的信息
+     * @param Int $pid
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getTiebaPerson($pid,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $url = $vlinkage_data_api."/person/tieba?person_id=".$pid."&start_date=".$start_date."&end_date=".$end_date;
+        $data = self::curl_get($url);
+        $data = json_decode($data,true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+    
+    /**
+     * 获取根据贴吧排序的艺人相关参数
+     * 
+     * @param String $start_date
+     * @param String $end_date
+     * @param int $start
+     * @param int $num 
+     */
+    public static function getPersonWeiboSortArg($start_date,$end_date,$start,$num=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/actorlist?order_by=weibo_fans_num&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$num}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+    
+    /**
+     * 获取微博中的艺人的信息
+     * @param Int $pid
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getWeiboPerson($pid,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $url = $vlinkage_data_api."/person/weibo?person_id=".$pid."&start_date=".$start_date."&end_date=".$end_date;
+        $data = self::curl_get($url);
+        $data = json_decode($data,true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+    
+    /**
+     * 获取参加过的电视剧的信息
+     * 
+     * @param int $id
+     */
+    public static function getPersonTeleplayArg($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/teleplay?person_id={$id}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+    
+    /**
+     * 艺人相关粉丝数
+     * @param int $id
+     */
+    public static function getPersonAboutFans($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/fans_num?person_id={$id}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+    
+    /**
+     * 获取艺人的title
+     * 
+     * @param $id
+     */
+    public static function getPersonTitle($id){
+        if(empty($id)){
+            return '';
+        }
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $teleplay_url = $vlinkage_data_api."/person/fans_num?person_id=".$id;
+        $data = self::curl_get($teleplay_url);
+        $data = json_decode($data,true);
+
+        if(empty($data['data']['zh_name'])){
+            return  '';
+        }
+        return $data['data']['zh_name'];
+    }
+    
+    /**
+     * 获取某个艺人的信息
+     * 
+     * @param $id
+     */
+    public static function getPersonInfo($id){
+        if(empty($id)){
+            return array();
+        }
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $teleplay_url = $vlinkage_data_api."/person/info?person_id=".$id;
+        $data = self::curl_get($teleplay_url);
+        $data = json_decode($data,true);
+
+        if(empty($data['data'])){
+            return array();
+        }
+        return $data['data'];
+    }
+    
+    /**
+     * 根据id获取电视剧的title
+     */
+    public static function getTeleplayTitle($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $url = $vlinkage_data_api."/teleplay/info?teleplay_id=".$id;
+        $data = self::curl_get($url);
+        $data = json_decode($data,true);
+        
+        if(!isset($data['data']['basic']['title']) || empty($data['data']['basic']['title'])){
+            return '';
+        }
+        return $data['data']['basic']['title'];
+    }
+    
+    /**
+     * @desc 获取电视剧的信息
+     * 
+     * @param Interger $teleplay_id
+     * @return Array 
+     * 
+     */
+    public static function getTeleplayInfo($teleplay_id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $url = $vlinkage_data_api."/teleplay/info?teleplay_id=".$teleplay_id;
+        $data = self::curl_get($url);
+        $data = json_decode($data,true);
+        
+        if(!isset($data['data']) || empty($data['data'])){
+            return false;
+        }
+        return $data['data'];
+    }
+    
+    
+    /**
+     * 获取电视剧的排名
+     * 
+     * @param Integer $sum
+     * @param Integer $start
+     * @param String $start_date
+     * @param String $end_date
+     */
+    public static function getTeleplayRank($start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/list?order_by=period_play_num&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+        
+    }
+    
+    
+    /**
+     * 判断teleplay的id是否在前20部电视剧中
+     * 
+     * @param $id
+     * 
+     * @param boole
+     */
+    public static function isTop20Teleplay($id){
+        $date = self::getMaxMinTime();
+        $teleplay = self::getTeleplayRank($date['end_date'], $date['end_date'], 1, 20);
+        foreach($teleplay['list'] as $k=>$v){
+            if($v['id'] == $id){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 判断teleplay的id是否在前20部电视剧中
+     * 
+     * @param $id
+     * @param boole
+     */
+    public static function isTop20Person($id){
+        $date = self::getPersonIndexDate();
+        $person = self::getPersonIndex($date['end_date'], $date['end_date'], 1, 20);
+//        print_r($person);
+//echo $id;
+        foreach($person['list'] as $k=>$v){
+            if($v['id'] == $id){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 所有新闻
+     * 
+     * @param Int $start 起始的页数
+     * @param Int $end 取数据的条数 
+     */
+    public static function getAllNews($start,$end){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/news/list?start={$start}&offset={$end}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 根据类别获取所有新闻
+     * 
+     * @param $start 其实的页数
+     * @param Int $end 取数据的条数 
+     * @param Int $id 新闻分类的id
+     */
+    public static function getCategoryNews($id,$start,$end){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/news/list?category={$id}&start={$start}&offset={$end}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取新闻的分类
+     * 
+     */
+    public static function getCategory(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/news/category";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取单个新闻的内容
+     * 
+     * @param $id 新闻id号
+     */
+    public static function getNew($id){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/news/show?id={$id}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取艺人指数
+     * 
+     * @param String $start_date
+     * @param String $end_date
+     * @param Integer $start
+     * @param Interger $sum
+     */
+    public static function getPersonIndex($start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/actorlist?order_by=index&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * @desc 获取艺人指数趋势
+     * 
+     * @param $key
+     * @param String $start_date
+     * @param String $end_date
+     * @param Integer $start
+     * @param Interger $sum
+     * 
+     * @return Array();
+     */
+    public static function getPersonIndexTrend($key,$start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/trend?type=actor_index&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取艺人中演员的历史表现
+     * 
+     * @param Integer $start
+     * @param Interger $sum
+     */
+    public static function getPersonPerformer($start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/actor_performance?role=director&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取艺人中导演的历史表现
+     * 
+     * @param Integer $start
+     * @param Interger $sum
+     */
+    public static function getPersonDirector($start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/nonactorlist?role=director&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取艺人中编剧的历史表现
+     * 
+     * @param Integer $start
+     * @param Interger $sum
+     */
+    public static function getPersonWriter($start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/nonactorlist?role=writer&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取艺人中编剧的历史表现
+     */
+    public static function getPersonIndexDate(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/actor_index/daterange";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取用户关注艺人的时间
+     * @param Integer $id
+     */
+    public static function getAttentionPersonDate($id){
+        $date = date('Y-m-d',$_SERVER['REQUEST_TIME']);
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/user/person/daterange?user_id={$id}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            if(empty($data['data']['start_date']) || empty($data['data']['end_date'])){
+                $data['data']['start_date']='2012-01-01';
+                $data['data']['end_date']=date('Y-m-d',strtotime("{$date} -1 day"));
+            }
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取用户关注的艺人
+     * @param Integer $id
+     */
+    public static function getAttentionPerson($id,$start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/user/attention?type=person&user_id={$id}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    
+    /**
+     * 获取用户关注电视剧的时间
+     * @param Integer $id
+     */
+    public static function getAttentionTeleplayDate($id){
+        $date = date('Y-m-d',$_SERVER['REQUEST_TIME']);
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/user/teleplay/daterange?user_id={$id}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            if(empty($data['data']['start_date']) || empty($data['data']['end_date'])){
+                $data['data']['start_date']='2012-01-01';
+                $data['data']['end_date']=date('Y-m-d',strtotime("{$date} -1 day"));
+            }
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取用户关注的电视剧
+     * @param Integer $id
+     */
+    public static function getAttentionTeleplay($id,$start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/user/attention?type=teleplay&user_id={$id}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 根据主题获取电视剧的排名
+     * 
+     * @param $sum
+     * @param $catagory
+     * @param $start_date
+     * @param $end_date
+     * @param $start
+     * 
+     */
+    public static function getTeleplayTheme($catagory,$start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/teleplay/list?order_by=category&category={$catagory}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+
+    
+    /**
+     * 根据网站获取电视剧的排名
+     * 
+     * @param $sum 查询数据的个数
+     * @param $start 数据查询的开始时间
+     * @param $end 数据查询的结束时间
+     * @param $site 网站的id
+     */
+    public static function getTeleplaySite($site,$start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/list?order_by=site&site={$site}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 根据网站获取电视剧的排名
+     * 
+     * @param $sum 查询数据的个数
+     * @param $start 数据查询的开始时间
+     * @param $end 数据查询的结束时间
+     * @param $age 年龄的id
+     */
+    public static function getTeleplayAge($age,$start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/list?order_by=age&age={$age}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 根据网站获取电视剧的排名
+     * 
+     * @param $sum 查询数据的个数
+     * @param $start 数据查询的开始时间
+     * @param $end 数据查询的结束时间
+     * @param $sex 性别的id
+     */
+    public static function getTeleplaySex($sex,$start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/list?order_by=sex&sex={$sex}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 根据贴吧进行排序获取电视剧的排名
+     * 
+     * @param $sum 查询数据的个数
+     * @param $start 数据查询的开始时间
+     * @param $end 数据查询的结束时间
+     * @param $order 性别的id
+     */
+    public static function getTeleplayOrder($order,$start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $teleplay_url = $vlinkage_data_api."/teleplay/list?order_by={$order}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($teleplay_url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 获取电视剧最大的播放时间
+     * @param return max end date
+     */
+    public static function getTeleplayMaxEndTime(){
+        $date = self::getMaxMinTime();
+        return $date['end_date'];
+    }
+    
+    
+    /**
+     * @desc 获取艺人的最大的数据结束时间
+     * 
+     * @param return max end date
+     */
+    public static function getPersonMaxEndTime(){
+        $date = self::getPersonIndexDate();
+        return $date['end_date'];
+    }
+    
+    /**
+     * @desc 获取前8的热播电视剧
+     * 
+     * @param return teleplay
+     */
+    public static function getTop8Teleplay(){
+        $date = self::getMaxMinTime();
+        $teleplay = self::getTeleplayRank($date['end_date'], $date['end_date'], 1, 8);
+        return $teleplay;
+    }
+    
+    /**
+     * @desc 获取指定数目的热播电视剧
+     * 
+     * @param return teleplay
+     * @param $sum
+     */
+    public static function getTopTeleplay($sum){
+        $date = self::getMaxMinTime();
+
+        $teleplay = self::getTeleplayRank($date['end_date'], $date['end_date'], 1, $sum);
+        return $teleplay;
+    }
+    
+    /**
+     * @desc 获取指定数目的艺人
+     * 
+     * @param return teleplay
+     * @param $sum
+     */
+    public static function getTopPerson($sum){
+        $date = self::getPersonIndexDate();
+        $person = self::getPersonIndex($date['end_date'], $date['end_date'], 1, $sum);
+        return $person;
+    }
+    
+    /**
+     * @desc 获取指定数目的艺人
+     * 
+     * @param int $start
+     * @param int $end
+     */
+    public static function getTopPersonLimit($start, $end){
+        $date = self::getPersonIndexDate();
+        $person = self::getPersonIndex($date['end_date'], $date['end_date'], $start, $end);
+        return $person;
+    }
+    
+    /**
+     * 获取前8的热门的艺人
+     * @param return person
+     */
+    public static function getTop8Person(){
+        $date = self::getPersonIndexDate();
+        $teleplay = self::getPersonIndex($date['end_date'], $date['end_date'], 1, 8);
+        return $teleplay;
+    }
+    
+    /**
+     * @desc 获取即将热播电视剧
+     * 
+     * @param return hot 
+     */
+    public static function getUpcomingTeleplay(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/teleplay/comingsoon";
+        $data = json_decode(self::curl_get($url),true);
+        if(empty($data)){
+            return array();
+        }
+        return $data['data'];
+    }
+    
+    /**
+     * @desc 获取推荐关注的艺人
+     * 
+     * @param $user_id
+     * @param $sum
+     */
+    public static function getSuggestPerson($user_id,$sum){
+        $date = self::getPersonIndexDate();
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/actorlist?order_by=index&user_id={$user_id}&start_date={$date['end_date']}&end_date={$date['end_date']}&start=1&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        if(empty($data)){
+            return array();
+        }
+        return $data['data'];
+    }
+    
+    /**
+     * 获取推荐关注电视剧
+     * 
+     * @param $user_id 用户的id
+     * @param $sum 获取电视剧的个数
+     * 
+     */
+    public static function getSuggestTeleplay($user_id,$sum){
+        $date = self::getMaxMinTime();
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/teleplay/list?order_by=period_play_num&user_id={$user_id}&start_date={$date['end_date']}&end_date={$date['end_date']}&start=1&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        if(empty($data)){
+            return array();
+        }
+        return $data['data'];
+    }
+    
+    /**
+     * 电视剧新闻媒体最大时间和最小时间限制
+     */
+    public function teleplayMediaTimeLimit(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/teleplay/news_num/daterange";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data']['end_date']) && !empty($data['data']['start_date'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 艺人新闻媒体最大时间和最小时间限制
+     */
+    public function personMediaTimeLimit(){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        $url = $vlinkage_data_api."/person/news_num/daterange";
+        $data = json_decode(self::curl_get($url),true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data']['end_date']) && !empty($data['data']['start_date'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 电视剧新闻媒体排行榜接口
+     * @param $start_date
+     * @param $end_date
+     * @param $start 其实数量
+     * @param $sum 一次获取数据的数量 
+     */
+    public static function teleplayMediaRank($start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/teleplay/news?start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 电视剧新闻媒体趋势接口
+     * @param $key
+     * @param $start_date
+     * @param $end_date
+     * @param $start 其实数量
+     * @param $sum 一次获取数据的数量 
+     */
+    public static function teleplayMediaTrend($key,$start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/teleplay/trend?type=news_num&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 艺人新闻媒体排行榜接口
+     * @param $start_date
+     * @param $end_date
+     * @param $start 其实数量
+     * @param $sum 一次获取数据的数量 
+     */
+    public static function personMediaRank($start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/person/news?start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+    
+    /**
+     * 艺人新闻媒体趋势接口
+     * @param $key
+     * @param $start_date
+     * @param $end_date
+     * @param $start 其实数量
+     * @param $sum 一次获取数据的数量 
+     */
+    public static function personMediaTrend($key,$start_date,$end_date,$start,$sum=10){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $data = array();
+        if($start == 0){
+            $start = 1;
+        }
+        $url = $vlinkage_data_api."/person/trend?type=news_num&count_by={$key}&start_date={$start_date}&end_date={$end_date}&start={$start}&offset={$sum}";
+        $data = json_decode(self::curl_get($url),true);
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        }
+    }
+
+    /**
+     * 单个电视剧新闻媒体趋势接口
+     * @param $id
+     * @param $start_date
+     * @param $end_date
+     */
+    public static function singleTeleplayMediaTrend($id,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $url = $vlinkage_data_api."/teleplay/news?teleplay_id=".$id."&start_date=".$start_date."&end_date=".$end_date;
+        $data = self::curl_get($url);
+        $data = json_decode($data,true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+
+    /**
+     * 单个艺人新闻媒体趋势接口
+     * @param $id
+     * @param $start_date
+     * @param $end_date
+     */
+    public static function singlePersonMediaTrend($id,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $url = $vlinkage_data_api."/person/news?person_id=".$id."&start_date=".$start_date."&end_date=".$end_date;
+        $data = self::curl_get($url);
+        $data = json_decode($data,true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+
+    /**
+     * 单个电视剧新闻媒体报道接口
+     * @param $id
+     * @param $start_date
+     * @param $end_date
+     */
+    public static function singleTeleplayMediaReport($id,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $url = $vlinkage_data_api."/teleplay/news?teleplay_id=".$id."&start_date=".$start_date."&end_date=".$end_date."&detail=1";
+        $data = self::curl_get($url);
+        $data = json_decode($data,true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+
+    /**
+     * 单个艺人新闻媒体报道接口
+     * @param $id
+     * @param $start_date
+     * @param $end_date
+     */
+    public static function singlePersonMediaReport($id,$start_date,$end_date){
+        $vlinkage_data_api = Q::ini('appini/vlinkage/dataapi');
+        $url = $vlinkage_data_api."/person/news?person_id=".$id."&start_date=".$start_date."&end_date=".$end_date."&detail=1";
+        $data = self::curl_get($url);
+        $data = json_decode($data,true);
+        
+        unset($vlinkage_data_api);
+        if(!empty($data['data'])){
+            return $data['data'];
+        }else{
+            return array();
+        } 
+    }
+
+    /**
+     * 根据url获取(get)数据
+     * 
+     */
+    public static function curl_get($get_url){
+        $start_time = microtime();
+        $appkey = Q::ini('appini/vlinkage/appkey');
+        $data = parse_url($get_url);
+        if(isset($data['query']) && !empty($data['query'])){
+            $get_url = $data['scheme'].'://'.$data['host'].':'.$data['port'].$data['path']."?".$data['query'].'&app_key='.$appkey;
+        }else{
+            $get_url = $data['scheme'].'://'.$data['host'].':'.$data['port'].$data['path'].'?app_key='.$appkey;
+        }
+
+        if(!empty(self::$uid)){
+            $get_url .= '&user_id='.self::$uid;
+        }
+        
+        if(!empty(self::$url)){
+            $get_url .= '&url='.urlencode(self::$url);
+        }
+        
+        if(!empty(self::$ip)){
+            $get_url .= '&ip='.self::$ip;
+        }
+        
+// echo $get_url;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_USERAGENT, "Sosospider");
+        curl_setopt($ch, CURLOPT_TIMEOUT, 40);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_URL, $get_url);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+        ob_start();
+        $content = curl_exec ($ch); 
+        ob_end_clean();
+        curl_close ($ch);
+        unset($ch);
+        
+        $end_time = microtime();
+        $time = $end_time - $start_time;
+        $time = abs($time);
+        unset($start_time,$end_time);
+        self::recordExecuteLengthLog($get_url, $time);
+        
+        return $content;
+    }
+
+    #根据url地址post数据
+    public static function curl_post($url,$post_data){
+        $start_time = microtime();
+        $appkey = Q::ini('appini/vlinkage/appkey');
+        $data = parse_url($url);
+        if(isset($data['query']) && !empty($data['query'])){
+            $url = $data['scheme'].'://'.$data['host'].':'.$data['port'].$data['path']."?".$data['query'].'&app_key='.$appkey;
+        }else{
+            $url = $data['scheme'].'://'.$data['host'].':'.$data['port'].$data['path'].'?app_key='.$appkey;
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_USERAGENT, "Sosospider");
+        curl_setopt($ch, CURLOPT_TIMEOUT, 40);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+        ob_start();
+        $content = curl_exec ($ch); 
+        ob_end_clean();
+        curl_close ($ch);
+        unset($ch);
+        
+        $end_time = microtime();
+        $time = $end_time - $start_time;
+        $time = abs($time);
+        unset($start_time,$end_time);
+        self::recordExecuteLengthLog($url, $time);
+        
+        return $content;
+        
+    }
+}
+?>

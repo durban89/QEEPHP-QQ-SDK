@@ -1,0 +1,148 @@
+<?php 
+/**
+ * 新浪接口操作类
+ * @version 2.0
+ */
+include_once Q::ini('app_config/ROOT_DIR').'/app/helper/sinaweibo/weibo_oauth_class.php';
+class Helper_Weibo{
+    private static $redirect_url;
+    
+    private static $error_code;
+    
+    //网站的appkey
+    private $appkey = '';
+    
+    //网站的appsecret    
+    private $appsecret = '';
+    
+    //网站的回调url
+    private $callback_url = '';
+    
+    //认证类
+    private $oauth;
+    
+    //Token认证类
+    private $token_oauth;
+    
+    //微博操作类
+    private $client;
+    
+    //回调后的code
+    private $code;
+    
+    
+    public function __construct($code = '') {
+        //初始化appkey
+        $this->appkey = Q::ini('appini/weibo/AKEY');
+        //初始化appsecret
+        $this->appsecret = Q::ini('appini/weibo/SKEY');
+        //初始化认证类
+        $this->oauth = new SaeTOAuthV2($this->appkey,$this->appsecret);
+        
+        $this->code = $code;
+    }
+
+    /**
+     * @desc 获取操作类
+     * @param $token
+     */
+    public function getClient($token){
+        //初始化带token的操作类
+        $this->client = new SaeTClientV2($this->appkey,$this->appsecret,$token);
+        return $this->client;
+    }
+    
+    //获取带token的认证类
+    public function getTokenOauth($token){
+        //初始化带token认证类
+        $this->token_oauth = new SaeTOAuthV2($this->appkey,$this->appsecret,$token);
+        return $this->token_oauth;
+    }
+    
+    //获取认证类
+    public function getOauth(){
+        return $this->oauth;
+    }
+    
+    //获取token
+    public function getToken($code, $redirect_url){
+        $keys = array();
+        $keys['code'] = $code;
+        $keys['redirect_uri'] = $redirect_url;
+        try{
+            $token = $this->oauth->getAccessToken('code',$keys);
+        }catch(OAuthException $oe){
+            return $oe->getMessage();
+        }
+        
+        return $token;
+    }
+    
+    /**
+     * @desc 获取回调函数
+     */
+    public function getCallbackUrl($url){
+        return $this->oauth->getAuthorizeURL($url);
+    }
+
+    /**
+     * @desc 设置appkey
+     * @param int $appkey
+     */
+    public function setAppkey($appkey){
+        $this->WB_AKEY = $appkey;
+    }
+    
+    
+    /**
+     * 获取appkey
+     */
+    public function getAppkey(){
+        return $this->WB_AKEY;
+    }
+    
+    /**
+     * @desc 设置appsecrect
+     * @param int $appsecrct
+     */
+    public function setAppSecret($appsecrct){
+        $this->WB_SKEY = $appsecrct;
+    }
+    
+    /**
+     * 获取appsecrect
+     */
+    public function getAppSecret(){
+        return $this->WB_SKEY;
+    }
+    
+    /**
+     * @desc 重新设置认证类
+     * @param int $appkey
+     * @param int $appsecrect
+     */
+    public function setOauth(){
+        //初始化认证类
+        $this->oauth = new SaeTOAuthV2($this->appkey,$this->appsecret);
+    }
+    
+    /**
+     * @desc 获取微博用的头像 默认的是小图片
+     * @param int $uid
+     * @return 图片的连接地址
+     */
+    public static function getProfileImage($uid){
+        return 'http://tp1.sinaimg.cn/'.$uid.'/50/5653052463/1';
+    }
+    
+    /**
+     * @desc 获取用户的微博的大图片
+     * @param int $uid
+     * @return 图片的连接地址
+     */
+    public static function getProfileLargeImage($uid){
+        return 'http://tp4.sinaimg.cn/'.$uid.'/180/40003117529/1';
+    }
+}
+?>
+
